@@ -13,7 +13,7 @@ Also, y is assumed to be a vector of n labels
 """
 
 # Enter your name here
-myname = "LastName-FirstName"
+myname = "May-Matthew"
 
 class RandomForest(object):
     class __DecisionTree(object):
