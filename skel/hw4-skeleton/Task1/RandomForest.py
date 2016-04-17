@@ -19,8 +19,8 @@ myname = "May-Matthew"
 
 class RandomForest(object):
     class __DecisionTree(object):
-        tree = {}
-        M = 3
+        def __init__(self, m):
+            self.m = m
 
         def learn(self, X, y):
             # TODO: train decision tree and store it in self.tree
@@ -30,7 +30,7 @@ class RandomForest(object):
             self.num_samples = self.X.shape[0]
             self.num_features = self.X.shape[1]
 
-            indices = np.random.choice(self.num_features, size=self.M, replace=False)
+            indices = np.random.choice(self.num_features, size=self.m, replace=False)
             self.tree = self.create_tree(X, y, indices, 0)
 
         def classify(self, test_instance):
@@ -81,14 +81,14 @@ class RandomForest(object):
                 vals = sorted(set(vals))
 
                 for v in xrange(len(vals) - 1):
-                    new_tresh = (vals[v] + vals[v + 1]) / 2
+                    new_thresh = (vals[v] + vals[v+1]) / 2
 
-                    X_1, y_1, X_2, y_2 = self.split(X, y, i, new_tresh)
+                    X_1, y_1, X_2, y_2 = self.split(X, y, i, new_thresh)
 
                     new_gain = Utils.gain(y, y_1, y_2)
 
                     if new_gain > gain:
-                        gain, fi, thresh = new_gain, i, new_tresh
+                        gain, fi, thresh = new_gain, i, new_thresh
 
             return fi, thresh
 
@@ -119,16 +119,19 @@ class RandomForest(object):
 
     decision_trees = []
 
-    def __init__(self, num_trees):
+    def __init__(self, num_trees, m):
         # TODO: do initialization here, you can change the function signature according to your need
         self.num_trees = num_trees
-        self.decision_trees = [self.__DecisionTree()] * num_trees
+        self.decision_trees = [self.__DecisionTree(m)] * num_trees
 
     # You MUST NOT change this signature
     def fit(self, X, y):
         # TODO: train `num_trees` decision trees
+        #sub = 360
         for tree in self.decision_trees:
-            print('... learning')
+            # X_shuff, y_shuff = Utils.shuffle(X, y)
+            #
+            # X_sub, y_sub = X_shuff[:sub], y_shuff[:sub]
             tree.learn(X, y)
 
     # You MUST NOT change this signature
@@ -136,9 +139,6 @@ class RandomForest(object):
         y = np.array([], dtype = int)
 
         for instance in X:
-            #for decision_tree in self.decision_trees:
-            #    print decision_tree.classify(instance)
-
             votes = np.array([decision_tree.classify(instance)
                               for decision_tree in self.decision_trees])
 
@@ -202,8 +202,6 @@ def main():
     X = []
     y = []
 
-    print('here')
-
     # Load data set
     with open("hw4-data.csv") as f:
         next(f, None)
@@ -212,39 +210,44 @@ def main():
             X.append(line[:-1])
             y.append(line[-1])
 
-    print('here2')
-
     X = np.array(X, dtype = float)
     y = np.array(y, dtype = int)
 
-    print('here3')
-
     # Split training/test sets
     # You need to modify the following code for cross validation
+
     K = 10
-    X_train = np.array([x for i, x in enumerate(X) if i % K != 9], dtype = float)
-    y_train = np.array([z for i, z in enumerate(y) if i % K != 9], dtype = int)
-    X_test  = np.array([x for i, x in enumerate(X) if i % K == 9], dtype = float)
-    y_test  = np.array([z for i, z in enumerate(y) if i % K == 9], dtype = int)
 
-    print('here4')
+    lbound = 0
+    bound_size = X.shape[0] / K
+    rbound = 0 + bound_size
 
-    randomForest = RandomForest(1)  # Initialize according to your implementation
+    accuracies = []
 
-    print('here5')
+    for i in xrange(10):
+        X_train = np.concatenate((X[:lbound,:], X[rbound:,:]))
+        y_train = np.concatenate((y[:lbound], y[rbound:]))
+        X_test = X[lbound:rbound,:]
+        y_test = y[lbound:rbound]
 
-    randomForest.fit(X_train, y_train)
+        randomForest = RandomForest(50, 1)  # Initialize according to your implementation
+        randomForest.fit(X_train, y_train)
 
-    print('here6')
+        y_predicted = randomForest.predict(X_test)
 
-    y_predicted = randomForest.predict(X_test)
+        results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
 
-    results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
+        # Accuracy
+        accuracy = float(results.count(True)) / float(len(results))
+        accuracies.append(accuracy)
 
-    # # Accuracy
-    # accuracy = float(results.count(True)) / float(len(results))
-    # print "accuracy: %.4f" % accuracy
-    #
-    # generateSubmissionFile(myname, randomForest)
+        # generateSubmissionFile(myname, randomForest)
+
+        print "accuracy: %.4f" % accuracy
+
+        lbound += bound_size
+        rbound += bound_size
+
+    print("Final accuracy: %.4f" % np.average(accuracies))
 
 main()
