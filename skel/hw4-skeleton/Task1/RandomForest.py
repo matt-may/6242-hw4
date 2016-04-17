@@ -127,12 +127,23 @@ class RandomForest(object):
     # You MUST NOT change this signature
     def fit(self, X, y):
         # TODO: train `num_trees` decision trees
-        #sub = 360
+        #X, y = Utils.shuffle(X, y)
+
+        lbound = 0
+        bound_size = X.shape[0] / self.num_trees
+        rbound = lbound + bound_size
+
         for tree in self.decision_trees:
-            # X_shuff, y_shuff = Utils.shuffle(X, y)
-            #
-            # X_sub, y_sub = X_shuff[:sub], y_shuff[:sub]
-            tree.learn(X, y)
+            X_sub, y_sub = X[lbound:rbound], y[lbound:rbound]
+
+            # print("lbound is %d, rbound is %d" % (lbound, rbound))
+            # print("lengths are: ")
+            # print(len(X_sub), len(y_sub))
+
+            tree.learn(X_sub, y_sub)
+
+            lbound += bound_size
+            rbound += bound_size
 
     # You MUST NOT change this signature
     def predict(self, X):
@@ -217,6 +228,8 @@ def main():
     # You need to modify the following code for cross validation
 
     K = 10
+    trees = 200
+    m = 5
 
     lbound = 0
     bound_size = X.shape[0] / K
@@ -230,7 +243,7 @@ def main():
         X_test = X[lbound:rbound,:]
         y_test = y[lbound:rbound]
 
-        randomForest = RandomForest(50, 1)  # Initialize according to your implementation
+        randomForest = RandomForest(trees, m)  # Initialize according to your implementation
         randomForest.fit(X_train, y_train)
 
         y_predicted = randomForest.predict(X_test)
