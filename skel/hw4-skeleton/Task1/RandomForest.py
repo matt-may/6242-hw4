@@ -1,5 +1,7 @@
+from __future__ import division
 import csv
 import numpy as np  # http://www.numpy.org
+from collections import Counter
 
 from CSE6242HW4Tester import generateSubmissionFile
 
@@ -21,11 +23,18 @@ class RandomForest(object):
 
         def learn(self, X, y):
             # TODO: train decision tree and store it in self.tree
-            pass
+            print(y)
+            print Utils.entropy(np.array([1,0,0,0,0,1,1]))
+            print Utils.shuffle(np.array([1,2]), np.array([3,4]))
+            exit()
+            # self.tree = self.build_tree(X, y)
 
         def classify(self, test_instance):
             # TODO: return predicted label for a single instance using self.tree
             return 0
+
+        def build_tree(self, X, y):
+            pass
 
     decision_trees = []
 
@@ -37,7 +46,8 @@ class RandomForest(object):
     # You MUST NOT change this signature
     def fit(self, X, y):
         # TODO: train `num_trees` decision trees
-        pass
+        for tree in self.decision_trees:
+            tree.learn(X, y)
 
     # You MUST NOT change this signature
     def predict(self, X):
@@ -53,6 +63,48 @@ class RandomForest(object):
 
         return y
 
+class Utils(object):
+    @staticmethod
+    def shuffle(list_a, list_b):
+        """
+        Shuffles two lists, maintaining index relationships between them. The
+        two lists should be the same length.
+
+        Returns the shuffled lists.
+
+        """
+
+        assert len(list_a) == len(list_b)
+        perm = np.random.permutation(len(list_a))
+        return list_a[perm], list_b[perm]
+
+    @staticmethod
+    def entropy(Y):
+        """
+        Computes information entropy of the labels.
+
+        """
+
+        dist, n_labs = Counter(Y), len(Y)
+        return -np.sum([(count_y/n_labs) * np.log2(count_y/n_labs) for y, count_y in dist.items()])
+
+    @staticmethod
+    def gain(parent, child1, child2):
+        """
+        Computes expected information gain from a split into two child groups.
+
+        The expected information gain is the change in information entropy from
+        a prior state to a new state that takes some information as given:
+        https://en.wikipedia.org/wiki/Information_gain_in_decision_trees
+
+        """
+
+        def weighted_entropy(child, n_labs):
+            return len(child) / n_labs * entropy(child)
+
+        n_labs = len(parent)
+        return entropy(parent) - \
+                (weighted_entropy(child1, n_labs) + weighted_entropy(child2, n_labs))
 
 def main():
     X = []
@@ -85,11 +137,11 @@ def main():
 
     results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
 
-    # Accuracy
-    accuracy = float(results.count(True)) / float(len(results))
-    print "accuracy: %.4f" % accuracy
-
-    generateSubmissionFile(myname, randomForest)
+    # # Accuracy
+    # accuracy = float(results.count(True)) / float(len(results))
+    # print "accuracy: %.4f" % accuracy
+    #
+    # generateSubmissionFile(myname, randomForest)
 
 
 main()
