@@ -24,24 +24,58 @@ class RandomForest(object):
 
         def learn(self, X, y):
             # TODO: train decision tree and store it in self.tree
-            self.num_features = X.shape[1]
+            self.X = X
+            self.y = y
+
+            self.num_samples = self.X.shape[0]
+            self.num_features = self.X.shape[1]
 
             indices = np.random.choice(self.num_features, size=self.M, replace=False)
-            self.tree = self.build_tree(X, y, indices, 0)
+            self.tree = self.create_tree(X, y, indices, 0)
 
         def classify(self, test_instance):
             # TODO: return predicted label for a single instance using self.tree
-            return 0
 
-        def build_tree(self, X, y, indices, d):
-            print('Building tree...')
-            if Utils.entropy(y) == 0: return np.bincount(y).argmax()
+            node = self.tree
 
-            indx, thresh = self.best_split(X, y, indices)
+            while isinstance(node, TreeNode):
+                if test_instance[node.fi] <= node.thresh:
+                    node = node.b_1
+                else:
+                    node = node.b_2
+
+            return node
+
+        def create_tree(self, X, y, indices, d):
+            """ Creates a decision tree. """
+
+            # Conditions for stopping.
+            if Utils.entropy(y) == 0 or d == 10 or len(y) < 2:
+                return self.most_common_val(y)
+
+            # Find the best split.
+            fi, thresh = self.best_split(X, y, indices)
+
+            # Split.
+            X_1, y_1, X_2, y_2 = self.split(X, y, fi, thresh)
+
+            # If we're empty on either side, return the most common value.
+            if y_1.shape[0] == 0 or y_2.shape[0] == 0:
+                return self.most_common_val(y)
+
+            # Split into branches.
+            b_1 = self.create_tree(X_1, y_1, indices, d+1)
+            b_2 = self.create_tree(X_2, y_2, indices, d+1)
+
+            return TreeNode(fi, thresh, b_1, b_2)
 
         def best_split(self, X, y, indices):
+            """ Finds the best split. """
+
+            # Initialize.
             gain, fi, thresh = 0, 0, 0
 
+            # Loop through, looking for the feature that maximizes our gain.
             for i in indices:
                 vals = X[:, i]
                 vals = sorted(set(vals))
@@ -78,19 +112,23 @@ class RandomForest(object):
 
             return X_1, y_1, X_2, y_2
 
+        def most_common_val(self, y):
+            """ Returns the most common value in an array. """
+
+            return np.bincount(y).argmax()
+
     decision_trees = []
 
     def __init__(self, num_trees):
         # TODO: do initialization here, you can change the function signature according to your need
         self.num_trees = num_trees
-        print('hello')
         self.decision_trees = [self.__DecisionTree()] * num_trees
-        print('done')
 
     # You MUST NOT change this signature
     def fit(self, X, y):
         # TODO: train `num_trees` decision trees
         for tree in self.decision_trees:
+            print('... learning')
             tree.learn(X, y)
 
     # You MUST NOT change this signature
@@ -98,6 +136,9 @@ class RandomForest(object):
         y = np.array([], dtype = int)
 
         for instance in X:
+            #for decision_tree in self.decision_trees:
+            #    print decision_tree.classify(instance)
+
             votes = np.array([decision_tree.classify(instance)
                               for decision_tree in self.decision_trees])
 
@@ -106,6 +147,13 @@ class RandomForest(object):
             y = np.append(y, np.argmax(counts))
 
         return y
+
+class TreeNode(object):
+    def __init__(self, fi, thresh, b_1, b_2):
+        self.fi = fi
+        self.thresh = thresh
+        self.b_1 = b_1
+        self.b_2 = b_2
 
 class Utils(object):
     @staticmethod
@@ -181,7 +229,7 @@ def main():
 
     print('here4')
 
-    randomForest = RandomForest(32)  # Initialize according to your implementation
+    randomForest = RandomForest(1)  # Initialize according to your implementation
 
     print('here5')
 
@@ -198,6 +246,5 @@ def main():
     # print "accuracy: %.4f" % accuracy
     #
     # generateSubmissionFile(myname, randomForest)
-
 
 main()
