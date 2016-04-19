@@ -41,7 +41,7 @@ class RandomForest(object):
             self.num_samples = self.X.shape[0]
             self.num_features = self.X.shape[1]
 
-            indices = np.random.choice(self.num_features, size=self.m, replace=False)
+            indices = np.random.choice(self.num_features, size=self.max_features, replace=False)
             self.tree = self.create_tree(X, y, indices, 0)
 
         def classify(self, test_instance):
@@ -130,7 +130,8 @@ class RandomForest(object):
 
     decision_trees = []
 
-    def __init__(self, num_trees, max_features, max_depth, bootstrap):
+    def __init__(self, num_trees = 100, max_features = 1, max_depth = 10,
+                bootstrap = 0.85):
         """
         Creates a new random forest.
 
@@ -164,10 +165,10 @@ class RandomForest(object):
             X, y = Utils.shuffle(X, y)
 
             # Retrieve the subset of the data to grow the tree on.
-            subset_X, subset_Y = X[:subset], Y[:subset]
+            subset_X, subset_y = X[:subset], y[:subset]
 
             # Train the tree.
-            tree.learn(subset_X, subset_Y)
+            tree.learn(subset_X, subset_y)
 
     # You MUST NOT change this signature
     def predict(self, X):
@@ -254,7 +255,6 @@ def main():
 
     K = 10
     trees = 10
-    m = 5
 
     lbound = 0
     bound_size = X.shape[0] / K
@@ -270,7 +270,7 @@ def main():
 
         print(lbound, rbound)
 
-        randomForest = RandomForest(trees, m)  # Initialize according to your implementation
+        randomForest = RandomForest(trees)  # Initialize according to your implementation
         randomForest.fit(X_train, y_train)
 
         y_predicted = randomForest.predict(X_test)
