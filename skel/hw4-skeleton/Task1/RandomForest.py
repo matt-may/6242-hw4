@@ -19,8 +19,19 @@ myname = "May-Matthew"
 
 class RandomForest(object):
     class __DecisionTree(object):
-        def __init__(self, m):
-            self.m = m
+        def __init__(self, max_features, max_depth):
+            """
+            Creates a new decision tree.
+
+            Args:
+                max_features: Integer. Number of features to use in growing the
+                    tree.
+                max_depth: Integer. Maximum depth to grow the tree.
+
+            """
+
+            self.max_features = max_features
+            self.max_depth = max_depth
 
         def learn(self, X, y):
             # TODO: train decision tree and store it in self.tree
@@ -119,31 +130,44 @@ class RandomForest(object):
 
     decision_trees = []
 
-    def __init__(self, num_trees, m):
+    def __init__(self, num_trees, max_features, max_depth, bootstrap):
+        """
+        Creates a new random forest.
+
+        Args:
+            num_trees: Integer. Number of trees to grow in constructing the
+                forest.
+            max_features: Integer. Number of features to randomly select when
+                searching for the best split.
+            max_depth: Integer. Maximum depth to growth each tree.
+            bootstrap: Float. Percentage of data to select as a subset for
+                growing each tree.
+
+        """
         # TODO: do initialization here, you can change the function signature according to your need
+
         self.num_trees = num_trees
-        self.decision_trees = [self.__DecisionTree(m)] * num_trees
+        self.max_features = max_features
+        self.bootstrap = bootstrap
+
+        # Build the forest.
+        self.decision_trees = [self.__DecisionTree(max_features, max_depth)] * num_trees
 
     # You MUST NOT change this signature
     def fit(self, X, y):
         # TODO: train `num_trees` decision trees
-        #X, y = Utils.shuffle(X, y)
 
-        lbound = 0
-        bound_size = X.shape[0] / self.num_trees
-        rbound = lbound + bound_size
+        subset = round(self.bootstrap * len(y))
 
         for tree in self.decision_trees:
-            X_sub, y_sub = X[lbound:rbound], y[lbound:rbound]
+            # Shuffle the data.
+            X, y = Utils.shuffle(X, y)
 
-            # print("lbound is %d, rbound is %d" % (lbound, rbound))
-            # print("lengths are: ")
-            # print(len(X_sub), len(y_sub))
+            # Retrieve the subset of the data to grow the tree on.
+            subset_X, subset_Y = X[:subset], Y[:subset]
 
-            tree.learn(X_sub, y_sub)
-
-            lbound += bound_size
-            rbound += bound_size
+            # Train the tree.
+            tree.learn(subset_X, subset_Y)
 
     # You MUST NOT change this signature
     def predict(self, X):
@@ -226,9 +250,10 @@ def main():
 
     # Split training/test sets
     # You need to modify the following code for cross validation
+    X, y = Utils.shuffle(X, y)
 
     K = 10
-    trees = 200
+    trees = 10
     m = 5
 
     lbound = 0
@@ -242,6 +267,8 @@ def main():
         y_train = np.concatenate((y[:lbound], y[rbound:]))
         X_test = X[lbound:rbound,:]
         y_test = y[lbound:rbound]
+
+        print(lbound, rbound)
 
         randomForest = RandomForest(trees, m)  # Initialize according to your implementation
         randomForest.fit(X_train, y_train)
