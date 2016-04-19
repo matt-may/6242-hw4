@@ -1,7 +1,16 @@
 from __future__ import division
 import csv
+import math
 import numpy as np  # http://www.numpy.org
 from collections import Counter
+
+
+
+### TODO: REMOVE
+
+from scipy.stats import entropy
+
+######
 
 from CSE6242HW4Tester import generateSubmissionFile
 
@@ -24,9 +33,10 @@ class RandomForest(object):
             Creates a new decision tree.
 
             Args:
-                max_features: Integer. Number of features to use in growing the
-                    tree.
-                max_depth: Integer. Maximum depth to grow the tree.
+                max_features: Function. Expression returning the number of
+                    features to test for each split. The function is passed the
+                    total number of features in the data.
+                max_depth: Integer. Maximum depth that the tree can be grown.
 
             """
 
@@ -38,11 +48,14 @@ class RandomForest(object):
             self.X = X
             self.y = y
 
-            self.num_samples = self.X.shape[0]
-            self.num_features = self.X.shape[1]
+            num_samples = self.X.shape[0]
+            num_features = self.X.shape[1]
 
-            indices = np.random.choice(self.num_features, size=self.max_features, replace=False)
-            self.tree = self.create_tree(X, y, indices, 0)
+            # Compute m, the subset of features to use in growing the tree.
+            m = self.max_features(num_features)
+            indices = np.random.choice(num_features, size=m, replace=False)
+
+            self.tree = self.create_tree(X, y, indices)
 
         def classify(self, test_instance):
             # TODO: return predicted label for a single instance using self.tree
@@ -50,18 +63,19 @@ class RandomForest(object):
             node = self.tree
 
             while isinstance(node, TreeNode):
-                if test_instance[node.fi] <= node.thresh:
-                    node = node.b_1
-                else:
+                if test_instance[node.fi] > node.thresh:
                     node = node.b_2
+                else:
+                    node = node.b_1
 
             return node
 
-        def create_tree(self, X, y, indices, d):
+        def create_tree(self, X, y, indices, d = 0):
             """ Creates a decision tree. """
 
+            #print("creating tree; depth is %d, len(y) is %d" % (d, len(y)))
             # Conditions for stopping.
-            if Utils.entropy(y) == 0 or d == 10 or len(y) < 2:
+            if Utils.entropy(y) == 0 or d == self.max_depth or len(y) < 100:
                 return self.most_common_val(y)
 
             # Find the best split.
@@ -75,8 +89,9 @@ class RandomForest(object):
                 return self.most_common_val(y)
 
             # Split into branches.
-            b_1 = self.create_tree(X_1, y_1, indices, d+1)
-            b_2 = self.create_tree(X_2, y_2, indices, d+1)
+            new_depth = d+1
+            b_1 = self.create_tree(X_1, y_1, indices, new_depth)
+            b_2 = self.create_tree(X_2, y_2, indices, new_depth)
 
             return TreeNode(fi, thresh, b_1, b_2)
 
@@ -130,17 +145,18 @@ class RandomForest(object):
 
     decision_trees = []
 
-    def __init__(self, num_trees = 100, max_features = 1, max_depth = 10,
-                bootstrap = 0.85):
+    def __init__(self, num_trees = 100, max_features = math.sqrt,
+                 max_depth = 10, bootstrap = 0.9):
         """
         Creates a new random forest.
 
         Args:
             num_trees: Integer. Number of trees to grow in constructing the
                 forest.
-            max_features: Integer. Number of features to randomly select when
-                searching for the best split.
-            max_depth: Integer. Maximum depth to growth each tree.
+            max_features: Expression returning the number of
+                features to test for each split. The function is passed the
+                total number of features in the data.
+            max_depth: Integer. Maximum depth that each tree will be grown.
             bootstrap: Float. Percentage of data to select as a subset for
                 growing each tree.
 
@@ -148,7 +164,6 @@ class RandomForest(object):
         # TODO: do initialization here, you can change the function signature according to your need
 
         self.num_trees = num_trees
-        self.max_features = max_features
         self.bootstrap = bootstrap
 
         # Build the forest.
@@ -158,7 +173,7 @@ class RandomForest(object):
     def fit(self, X, y):
         # TODO: train `num_trees` decision trees
 
-        subset = round(self.bootstrap * len(y))
+        subset = int(self.bootstrap * len(y))
 
         for tree in self.decision_trees:
             # Shuffle the data.
@@ -213,8 +228,9 @@ class Utils(object):
 
         """
 
+        print('computing entropy')
         dist, n_labs = Counter(Y), len(Y)
-        return -np.sum([(count_y/n_labs) * np.log2(count_y/n_labs) for y, count_y in dist.items()])
+        return -np.sum([(count_y/n_labs) * math.log(count_y/n_labs, 2) for y, count_y in dist.items()])
 
     @staticmethod
     def gain(parent, child1, child2):
@@ -270,7 +286,13 @@ def main():
 
         print(lbound, rbound)
 
-        randomForest = RandomForest(trees)  # Initialize according to your implementation
+        # self, num_trees = 100, max_features = math.sqrt,
+        #             max_depth = 10, bootstrap = 0.9
+
+        # Initialize according to your implementation
+        randomForest = RandomForest(num_trees = 10, max_features = math.sqrt,
+                                    max_depth = 10, bootstrap = 0.9)
+
         randomForest.fit(X_train, y_train)
 
         y_predicted = randomForest.predict(X_test)
