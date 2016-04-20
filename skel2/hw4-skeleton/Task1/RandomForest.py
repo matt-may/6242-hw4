@@ -31,12 +31,12 @@ class RandomForest(object):
             num_features = X.shape[1]
             num_sub_features = int(self.m(num_features))
 
-            print("num sub features: %d" % num_sub_features)
-
             indices = np.random.choice(num_features, size=num_sub_features,
                                        replace=False)
 
-            
+            print(indices)
+
+
 
         def classify(self, test_instance):
             # TODO: return predicted label for a single instance using self.tree
