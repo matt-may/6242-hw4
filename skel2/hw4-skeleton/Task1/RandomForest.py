@@ -203,11 +203,13 @@ class RandomForest(object):
 
     # You MUST NOT change this signature
     def fit(self, X, y):
+        # Subset for bootstrapping.
         subset = int(self.bootstrap * len(y))
 
+        # For every decision tree,
         for tree in self.decision_trees:
             # Shuffle the data.
-            X, y = self.shuffle(X, y)
+            X, y = RandomForest.shuffle(X, y)
 
             # Retrieve the subset of the data to train the tree on.
             subset_X, subset_y = X[:subset], y[:subset]
@@ -229,7 +231,8 @@ class RandomForest(object):
 
         return y
 
-    def shuffle(self, list_a, list_b):
+    @staticmethod
+    def shuffle(list_a, list_b):
         """
         Shuffles two lists, maintaining index relationships between them. The
         two lists should be the same length.
@@ -280,7 +283,7 @@ def main():
     # Split training/test sets
     # You need to modify the following code for cross validation
 
-    X, y = Utils.shuffle(X, y)
+    X, y = RandomForest.shuffle(X, y)
 
     K = 10
 
@@ -302,7 +305,7 @@ def main():
         print(lbound, rbound)
 
         # Initialize according to your implementation
-        randomForest = RandomForest(10)
+        randomForest = RandomForest(50, m=lambda x: 1)
 
         # Fit the classifier.
         randomForest.fit(X_train, y_train)
