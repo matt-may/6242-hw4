@@ -1,4 +1,4 @@
-## 2.a
+## Section A
 
 ### 1. Random forest.
 
@@ -13,9 +13,8 @@ a    b   <-- classified as
 ### 2. Support vector machines.
 
 weka.classifiers.functions.SMO -C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 \
-                               -K "weka.classifiers.functions.supportVector.PolyKernel \
-                               -E 1.0 -C 250007" -calibrator "weka.classifiers.functions.Logistic \
-                               -R 1.0E-8 -M -1 -num-decimal-places 4"
+                               -K "weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007" \
+                               -calibrator "weka.classifiers.functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4"
 Time taken to build model: 0.59 seconds
 Overall accuracy: 78.6 %
 Confusion matrix:
@@ -23,7 +22,7 @@ a    b   <-- classified as
 3144    0 |    a = 0
 856    0 |    b = 1
 
-### 3. Custom classifier.
+### 3. Custom classifier: random committee.
 
 weka.classifiers.meta.RandomCommittee -S 1 -num-slots 1 -I 100 \
                                       -W weka.classifiers.trees.RandomTree -- \
@@ -35,5 +34,30 @@ a    b   <-- classified as
 2992  152 |    a = 0
 351  505 |    b = 1
 
-## 2.b
+## Section B
 
+### 1.
+
+My model scored around 82% accuracy in cross-validation, while the Weka model
+achieved 88%. From reviewing the Weka source, one possible reason it performed
+better is the use of a more advanced splitting criterion. Another option is that
+it uses a more advanced bagging implementation than my simple implementation.
+
+### 2.
+
+I chose the random committee classifier. It builds an ensemble of randomizable
+base classifiers, and then makes a prediction by averaging the predictions from
+the individual classifiers. Pro: ability to mitigate the failure mode of an
+individual classifier through the ensemble. Con: still performed worse than the
+solo random forest.
+
+### 3.
+
+The solo random forest strategy performed the best in terms of accuracy and
+confusion matrix. All executed very quickly, so running time was not a primary
+concern on this dataset. The SVM predicted everything to be in class 0, so
+it failed very poorly and only achieved a baseline accuracy rate of 78.6%. The
+random committee classifier was tuned by increasing the -I (numIterations)
+parameter, which increased accuracy by ~1%. Both the random committee and
+random forest failed in a similar manner, as seen by their comparable confusion
+matrices and accuracy rates.
