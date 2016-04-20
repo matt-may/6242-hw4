@@ -40,14 +40,14 @@ a    b   <-- classified as
 
 My model scored around 82% accuracy in cross-validation, while the Weka model
 achieved 88%. From reviewing the Weka source, one possible reason it performed
-better is the use of a more advanced splitting criterion. Another option is that
+better is the use of a more advanced splitting criterion. Another reason is that
 it uses a more advanced bagging implementation than my simple implementation.
 
 ### 2.
 
 I chose the random committee classifier. It builds an ensemble of randomizable
 base classifiers, and then makes a prediction by averaging the predictions from
-the individual classifiers. Pro: ability to mitigate the failure mode of an
+the individual classifiers. Pro: ability to mitigate the failure modes of an
 individual classifier through the ensemble. Con: still performed worse than the
 solo random forest.
 
