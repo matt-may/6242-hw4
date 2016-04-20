@@ -54,6 +54,22 @@ class RandomForest(object):
         return y
 
 
+class Utils(object):
+    @staticmethod
+    def shuffle(list_a, list_b):
+        """
+        Shuffles two lists, maintaining index relationships between them. The
+        two lists should be the same length.
+
+        Returns the shuffled lists.
+
+        """
+
+        assert len(list_a) == len(list_b)
+        perm = np.random.permutation(len(list_a))
+        return list_a[perm], list_b[perm]
+
+
 def main():
     X = []
     y = []
@@ -71,25 +87,51 @@ def main():
 
     # Split training/test sets
     # You need to modify the following code for cross validation
+
+    X, y = Utils.shuffle(X, y)
+
     K = 10
-    X_train = np.array([x for i, x in enumerate(X) if i % K != 9], dtype = float)
-    y_train = np.array([z for i, z in enumerate(y) if i % K != 9], dtype = int)
-    X_test  = np.array([x for i, x in enumerate(X) if i % K == 9], dtype = float)
-    y_test  = np.array([z for i, z in enumerate(y) if i % K == 9], dtype = int)
 
-    randomForest = RandomForest(999)  # Initialize according to your implementation
+    lbound = 0
+    bound_size = X.shape[0] / K
+    rbound = lbound + bound_size
 
-    randomForest.fit(X_train, y_train)
+    accuracies = []
 
-    y_predicted = randomForest.predict(X_test)
+    for i in xrange(K):
+        # Prepare a training set.
+        X_train = np.concatenate((X[:lbound,:], X[rbound:,:]))
+        y_train = np.concatenate((y[:lbound], y[rbound:]))
 
-    results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
+        # Prepare a test set.
+        X_test = X[lbound:rbound,:]
+        y_test = y[lbound:rbound]
 
-    # Accuracy
-    accuracy = float(results.count(True)) / float(len(results))
-    print "accuracy: %.4f" % accuracy
+        print(lbound, rbound)
 
-    generateSubmissionFile(myname, randomForest)
+        # Initialize according to your implementation
+        randomForest = RandomForest(10)
 
+        # Fit the classifier.
+        randomForest.fit(X_train, y_train)
+
+        # Predict results of the test set.
+        y_predicted = randomForest.predict(X_test)
+
+        # Determine our successes, and failures.
+        results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
+
+        # Accuracy
+        accuracy = float(results.count(True)) / float(len(results))
+        accuracies.append(accuracy)
+
+        # generateSubmissionFile(myname, randomForest)
+
+        print "accuracy: %.4f" % accuracy
+
+        lbound += bound_size
+        rbound += bound_size
+
+    print("Final accuracy: %.4f" % np.average(accuracies))
 
 main()
