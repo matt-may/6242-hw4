@@ -52,6 +52,23 @@ class RandomForest(object):
                 # Return the most common value.
                 return self.mode(y)
 
+            # Retrieve the feature index and threshold for the best split.
+            fi, thresh = self.best_split(X, y, indices)
+
+            # Perform the split, splitting samples and labels into two groups.
+            X_1, y_1, X_2, y_2 = self.split(X, y, fi, thresh)
+
+            # If we're empty on either side, return the most common value in y.
+            if y_1.shape[0] == 0 or y_2.shape[0] == 0:
+                return self.mode(y)
+
+            # Create branches.
+            new_depth = depth + 1
+            b_1 = self.build_tree(X_1, y_1, indices, new_depth)
+            b_2 = self.build_tree(X_2, y_2, indices, new_depth)
+
+            return Node(fi, thresh, b_1, b_2)
+
         def best_split(self, X, y, indices):
             """
             Finds the best split for the given feature indices. Returns the
@@ -59,7 +76,7 @@ class RandomForest(object):
 
             """
 
-            # Initialize.
+            # Initialize our gain, feature index, and threshold values.
             gain, fi, thresh = 0, 0, 0
 
             # For each feature index,
@@ -92,7 +109,12 @@ class RandomForest(object):
 
             """
 
+            # Retrieve all rows for the feature that are less than or equal to
+            # the threshold.
             less_than = np.where(X[:,fi] <= thresh)
+
+            # Retrieve all rows for the feature that are greater than the
+            # threshold.
             greater_than = np.where(X[:,fi] > thresh)
 
             # Features and labels less than or equal to the threshold.
@@ -165,6 +187,25 @@ class RandomForest(object):
 
         return y
 
+class Node(object):
+    """ Node abstraction for the decision tree. """
+
+    def __init__(self, fi, thresh, b_1, b_2):
+        """
+        Creates a new node in the decision tree.
+
+        Args:
+          fi: Integer. Feature index.
+          thresh. Float. Threshold for the node.
+          b_1: Node. Left branch.
+          b_2: Node. Right branch.
+
+        """
+
+        self.fi = fi
+        self.thresh = thresh
+        self.b_1 = b_1
+        self.b_2 = b_2
 
 class Utils(object):
     @staticmethod
