@@ -104,7 +104,8 @@ class RandomForest(object):
             # Loop through, looking for the feature that maximizes our gain.
             for i in indices:
                 vals = X[:, i]
-                vals = sorted(set(vals))
+                np.sort(vals)
+                #(vals)
 
                 for v in xrange(len(vals) - 1):
                     new_thresh = (vals[v] + vals[v+1]) / 2

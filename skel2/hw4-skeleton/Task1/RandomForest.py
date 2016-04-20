@@ -97,7 +97,7 @@ class RandomForest(object):
             # For each feature index,
             for i in indices:
                 # Sort the values for the feature.
-                vals = sorted(set(X[:, i]))
+                vals = np.sort(np.unique(X[:, i]))
 
                 # For every row,
                 for v in xrange(len(vals) - 1):
@@ -305,7 +305,7 @@ def main():
         print(lbound, rbound)
 
         # Initialize according to your implementation
-        randomForest = RandomForest(500, m=lambda x: 1)
+        randomForest = RandomForest(10)
 
         # Fit the classifier.
         randomForest.fit(X_train, y_train)
