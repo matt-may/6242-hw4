@@ -27,15 +27,15 @@ class RandomForest(object):
             self.X = X
             self.y = y
 
-            num_samples = X.shape[0]
+            # Compute the number of sub-features to split on.
             num_features = X.shape[1]
             num_sub_features = int(self.m(num_features))
 
+            # Find the indices of the sub-features.
             indices = np.random.choice(num_features, size=num_sub_features,
                                        replace=False)
 
-            print(indices)
-
+            
 
 
         def classify(self, test_instance):
@@ -123,7 +123,6 @@ def main():
         y_test = y[lbound:rbound]
 
         print(lbound, rbound)
-        print(len(X_train), len(y_train), len(X_test), len(y_test))
 
         # Initialize according to your implementation
         randomForest = RandomForest(10)
