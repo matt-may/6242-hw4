@@ -18,8 +18,6 @@ myname = "LastName-FirstName"
 
 class RandomForest(object):
     class __DecisionTree(object):
-        tree = {}
-
         def __init__(self, m = math.sqrt, max_depth = 10, min_for_split = 2):
             self.m = m
             self.max_depth = max_depth
@@ -180,15 +178,42 @@ class RandomForest(object):
 
     decision_trees = []
 
-    def __init__(self, num_trees, m = math.sqrt):
+    def __init__(self, num_trees = 10, m = math.sqrt, max_depth = 10,
+                 min_for_split = 2, bootstrap = 0.9):
+        """
+        Creates a new random forest.
+
+        Args:
+            num_trees: Integer. Number of trees to grow in constructing the
+                forest.
+            m: Function. Expression returning the number of features to test
+                for each split. The function is passed the total number of
+                features in the data.
+            max_depth: Integer. Maximum depth that each tree will be grown.
+            min_for_split: Integer. Minimum number of samples required for a
+                new split to happen.
+            bootstrap: Float. Percentage of data to select as a subset for
+                growing each tree.
+
+        """
         # TODO: do initialization here, you can change the function signature according to your need
-        self.num_trees = num_trees
-        self.decision_trees = [self.__DecisionTree(m)] * num_trees
+        self.decision_trees = [self.__DecisionTree(m=m, max_depth=max_depth,
+                                                   min_for_split=min_for_split)] * num_trees
+        self.bootstrap = bootstrap
 
     # You MUST NOT change this signature
     def fit(self, X, y):
+        subset = int(self.bootstrap * len(y))
+
         for tree in self.decision_trees:
-            tree.learn(X, y)
+            # Shuffle the data.
+            X, y = self.shuffle(X, y)
+
+            # Retrieve the subset of the data to train the tree on.
+            subset_X, subset_y = X[:subset], y[:subset]
+
+            # Train the tree.
+            tree.learn(subset_X, subset_y)
 
     # You MUST NOT change this signature
     def predict(self, X):
@@ -203,6 +228,19 @@ class RandomForest(object):
             y = np.append(y, np.argmax(counts))
 
         return y
+
+    def shuffle(self, list_a, list_b):
+        """
+        Shuffles two lists, maintaining index relationships between them. The
+        two lists should be the same length.
+
+        Returns the shuffled lists.
+
+        """
+
+        assert len(list_a) == len(list_b)
+        perm = np.random.permutation(len(list_a))
+        return list_a[perm], list_b[perm]
 
 class Node(object):
     """ Node abstraction for the decision tree. """
@@ -223,22 +261,6 @@ class Node(object):
         self.thresh = thresh
         self.b_1 = b_1
         self.b_2 = b_2
-
-class Utils(object):
-    @staticmethod
-    def shuffle(list_a, list_b):
-        """
-        Shuffles two lists, maintaining index relationships between them. The
-        two lists should be the same length.
-
-        Returns the shuffled lists.
-
-        """
-
-        assert len(list_a) == len(list_b)
-        perm = np.random.permutation(len(list_a))
-        return list_a[perm], list_b[perm]
-
 
 def main():
     X = []
