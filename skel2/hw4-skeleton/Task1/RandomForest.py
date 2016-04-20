@@ -37,12 +37,29 @@ class RandomForest(object):
             indices = np.random.choice(num_features, size=num_sub_features,
                                        replace=False)
 
-            self.build_tree(X, y, indices)
-
+            # Build the decision tree and assign it to self.tree.
+            self.tree = self.build_tree(X, y, indices)
 
         def classify(self, test_instance):
             # TODO: return predicted label for a single instance using self.tree
-            return 0
+            node = self.tree
+
+            # While the node is a Node instance (not an integer classification),
+            # traverse the tree, checking whether the test instance's value for
+            # the feature is less than or equal to the threshold.
+            # If yes, select the left branch.
+            # If no, select the right branch.
+            while isinstance(node, Node):
+                if test_instance[node.fi] <= node.thresh:
+                    node = node.b_1
+                else:
+                    node = node.b_2
+
+            # The leaf node will contain the classification.
+            klass = node
+
+            # Return the class.
+            return klass
 
         def build_tree(self, X, y, indices, depth = 0):
             # If any of our stopping conditions are met,
@@ -93,7 +110,7 @@ class RandomForest(object):
                     X_1, y_1, X_2, y_2 = self.split(X, y, i, new_thresh)
 
                     # Compute the new gain value.
-                    new_gain = self.gain(y, y_1, y_2)
+                    new_gain = self.gini_gain(y, y_1, y_2)
 
                     # If the new gain exceeds the current gain, update the
                     # gain, feature index, and threshold.
