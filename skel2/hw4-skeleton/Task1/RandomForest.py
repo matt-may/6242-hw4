@@ -301,7 +301,7 @@ def main():
         y_test = y[lbound:rbound]
 
         # Initialize according to your implementation
-        randomForest = RandomForest(10)
+        randomForest = RandomForest(3)
 
         # Fit the classifier.
         randomForest.fit(X_train, y_train)
