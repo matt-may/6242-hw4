@@ -19,8 +19,6 @@ myname = "May-Matthew"
 class RandomForest(object):
     class __DecisionTree(object):
         def __init__(self, m = math.sqrt, max_depth = 10, min_for_split = 2):
-            print('Creating new decision tree.')
-
             self.m = m
             self.max_depth = max_depth
             self.min_for_split = min_for_split
@@ -302,10 +300,8 @@ def main():
         X_test = X[lbound:rbound,:]
         y_test = y[lbound:rbound]
 
-        print(lbound, rbound)
-
         # Initialize according to your implementation
-        randomForest = RandomForest(10)
+        randomForest = RandomForest(100)
 
         # Fit the classifier.
         randomForest.fit(X_train, y_train)

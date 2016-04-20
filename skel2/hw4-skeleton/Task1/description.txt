@@ -1,0 +1,15 @@
+For my initial forest, I implemented entropy with information gain as my
+splitting function. I implemented recursive tree-building, with it
+early-stopping when the entropy of the labels was zero, a maximum depth was
+reached, or the number of samples was less than two. A sub-optimal version of
+bagging was also implemented. I chose this approach because it was the most
+simple implementation to start with, and it was straightforward to implement
+from available documentation.
+
+With 10-fold cross-validation, my model achieved 82.25% accuracy.
+
+To improve my model (accuracy was not exceeding 78.6%), I implemented the Gini
+index and Gini gain as my splitting function, as this seemed to be better-
+suited to classification. I also implemented bagging. With these changes, the
+model achieved 86.86% accuracy on the public leaderboard, an increase of
+approximately 10% in accuracy.
