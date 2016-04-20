@@ -305,7 +305,7 @@ def main():
         print(lbound, rbound)
 
         # Initialize according to your implementation
-        randomForest = RandomForest(50, m=lambda x: 1)
+        randomForest = RandomForest(500, m=lambda x: 1)
 
         # Fit the classifier.
         randomForest.fit(X_train, y_train)
