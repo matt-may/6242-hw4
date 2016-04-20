@@ -20,8 +20,10 @@ class RandomForest(object):
     class __DecisionTree(object):
         tree = {}
 
-        def __init__(self, m):
+        def __init__(self, m = math.sqrt, max_depth = 10, min_for_split = 2):
             self.m = m
+            self.max_depth = max_depth
+            self.min_for_split = min_for_split
 
         def learn(self, X, y):
             self.X = X
@@ -35,12 +37,81 @@ class RandomForest(object):
             indices = np.random.choice(num_features, size=num_sub_features,
                                        replace=False)
 
-            
+            self.build_tree(X, y, indices)
 
 
         def classify(self, test_instance):
             # TODO: return predicted label for a single instance using self.tree
             return 0
+
+        def build_tree(self, X, y, indices, depth = 0):
+            # If any of our stopping conditions are met,
+            if self.gini(y) == 0.0 or \
+               self.max_depth == depth or \
+               len(y) < self.min_for_split:
+                # Return the most common value.
+                return self.mode(y)
+
+        def best_split(self, X, y, indices):
+            """
+            Finds the best split for the given feature indices. Returns the
+            feature index and threshold.
+
+            """
+
+            # Initialize.
+            gain, fi, thresh = 0, 0, 0
+
+            # For each feature index,
+            for i in indices:
+                # Sort the values for the feature.
+                vals = sorted(set(X[:, i]))
+
+                # For every row,
+                for v in xrange(len(vals) - 1):
+                    # Compute a threshold.
+                    new_thresh = (vals[v] + vals[v+1]) / 2
+
+                    # Perform a split base on the threshold.
+                    X_1, y_1, X_2, y_2 = self.split(X, y, i, new_thresh)
+
+                    # Compute the new gain value.
+                    new_gain = self.gain(y, y_1, y_2)
+
+                    # If the new gain exceeds the current gain, update the
+                    # gain, feature index, and threshold.
+                    if new_gain > gain:
+                        gain, fi, thresh = new_gain, i, new_thresh
+
+            return fi, thresh
+
+        def split(self, X, y, fi, thresh):
+            """
+            Splits both features and labels into two groups each, based on a
+            defined threshold.
+
+            """
+
+            less_than = np.where(X[:,fi] <= thresh)
+            greater_than = np.where(X[:,fi] > thresh)
+
+            # Features and labels less than or equal to the threshold.
+            X_1 = X[less_than]
+            y_1 = y[less_than]
+
+            # Features and labels greater than the threshold.
+            X_2 = X[greater_than]
+            y_2 = y[greater_than]
+
+            return X_1, y_1, X_2, y_2
+
+        def mode(self, y):
+            """
+            Returns the most common value in a set of labels y.
+
+            """
+
+            return np.bincount(y).argmax()
 
         def gini_gain(self, y, left, right):
             """
