@@ -283,14 +283,22 @@ def main():
     X = np.array(X, dtype = float)
     y = np.array(y, dtype = int)
 
+    # Shuffle the data.
+    X, y = RandomForest.shuffle(X, y)
+
+    # Number of folds for cross-validation.
     K = 10
 
+    # Initialize a left bound, and right bound, that will advance for cross-
+    # validation.
     lbound = 0
     bound_size = X.shape[0] / K
     rbound = lbound + bound_size
 
+    # Create a container for the accuracies across cross-validation.
     accuracies = []
 
+    # Perform K-fold cross validation.
     for i in xrange(K):
         # Prepare a training set.
         X_train = np.concatenate((X[:lbound,:], X[rbound:,:]))
@@ -301,7 +309,7 @@ def main():
         y_test = y[lbound:rbound]
 
         # Initialize according to your implementation
-        randomForest = RandomForest(3)
+        randomForest = RandomForest(7)
 
         # Fit the classifier.
         randomForest.fit(X_train, y_train)
@@ -318,6 +326,7 @@ def main():
 
         print "Accuracy: %.4f" % accuracy
 
+        # Increment the boundaries.
         lbound += bound_size
         rbound += bound_size
 
