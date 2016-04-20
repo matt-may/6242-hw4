@@ -42,6 +42,32 @@ class RandomForest(object):
             # TODO: return predicted label for a single instance using self.tree
             return 0
 
+        def gini_gain(self, y, left, right):
+            """
+            Computes the Gini gain of splitting a set of labels into two sets,
+                left and right.
+
+            """
+
+            def weighted_gini(part, num_labs):
+                return (len(part) / num_labs) * self.gini(part)
+
+            num_labs = float(len(y))
+            weighted_sum = weighted_gini(left, num_labs) + \
+                           weighted_gini(right, num_labs)
+
+            return self.gini(y) - weighted_sum
+
+        def gini(self, y):
+            """
+            Computes the Gini index for a set of labels y.
+
+            """
+
+            num_y = float(len(y))
+            counts = np.bincount(y)
+            return 1 - np.sum([(count / num_y)**2 for count in counts])
+
     decision_trees = []
 
     def __init__(self, num_trees, m = math.sqrt):
