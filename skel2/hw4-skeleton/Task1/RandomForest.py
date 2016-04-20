@@ -14,11 +14,13 @@ Also, y is assumed to be a vector of n labels
 """
 
 # Enter your name here
-myname = "LastName-FirstName"
+myname = "May-Matthew"
 
 class RandomForest(object):
     class __DecisionTree(object):
         def __init__(self, m = math.sqrt, max_depth = 10, min_for_split = 2):
+            print('Creating new decision tree.')
+
             self.m = m
             self.max_depth = max_depth
             self.min_for_split = min_for_split
@@ -197,8 +199,12 @@ class RandomForest(object):
 
         """
         # TODO: do initialization here, you can change the function signature according to your need
-        self.decision_trees = [self.__DecisionTree(m=m, max_depth=max_depth,
-                                                   min_for_split=min_for_split)] * num_trees
+        print("Initializing %d trees." % num_trees)
+
+        for t in xrange(num_trees):
+            self.decision_trees.append(self.__DecisionTree(m=m, max_depth=max_depth,
+                                                           min_for_split=min_for_split))
+
         self.bootstrap = bootstrap
 
     # You MUST NOT change this signature
@@ -265,68 +271,136 @@ class Node(object):
         self.b_1 = b_1
         self.b_2 = b_2
 
+from subprocess import call
+
 def main():
-    X = []
-    y = []
+    for B in xrange(1, 50, 5):
+        for m in [lambda x: 1, math.sqrt, lambda x: x]:
+            for md in [1, 5, 10]:
+                X = []
+                y = []
 
-    # Load data set
-    with open("hw4-data.csv") as f:
-        next(f, None)
+                with open("winequality-red.csv") as f:
+                    next(f, None)
 
-        for line in csv.reader(f, delimiter = ","):
-            X.append(line[:-1])
-            y.append(line[-1])
+                    for line in csv.reader(f, delimiter = ";"):
+                        X.append(line[:-1])
 
-    X = np.array(X, dtype = float)
-    y = np.array(y, dtype = int)
+                        last = int(line[-1])
 
-    # Split training/test sets
-    # You need to modify the following code for cross validation
+                        if last < 7:
+                            y.append(0)
+                        else:
+                            y.append(1)
 
-    X, y = RandomForest.shuffle(X, y)
+                with open("winequality-white.csv") as f:
+                    next(f, None)
 
-    K = 10
+                    for line in csv.reader(f, delimiter = ";"):
+                        X.append(line[:-1])
 
-    lbound = 0
-    bound_size = X.shape[0] / K
-    rbound = lbound + bound_size
+                        last = int(line[-1])
 
-    accuracies = []
+                        if last < 7:
+                            y.append(0)
+                        else:
+                            y.append(1)
 
-    for i in xrange(K):
-        # Prepare a training set.
-        X_train = np.concatenate((X[:lbound,:], X[rbound:,:]))
-        y_train = np.concatenate((y[:lbound], y[rbound:]))
+                X = np.array(X, dtype = float)
+                y = np.array(y, dtype = int)
 
-        # Prepare a test set.
-        X_test = X[lbound:rbound,:]
-        y_test = y[lbound:rbound]
+                # Split training/test sets
+                # You need to modify the following code for cross validation
 
-        print(lbound, rbound)
+                X, y = RandomForest.shuffle(X, y)
 
-        # Initialize according to your implementation
-        randomForest = RandomForest(10)
+                print("B is %d" % B)
 
-        # Fit the classifier.
-        randomForest.fit(X_train, y_train)
+                randomForest = RandomForest(B)
 
-        # Predict results of the test set.
-        y_predicted = randomForest.predict(X_test)
+                # Fit the classifier.
+                randomForest.fit(X, y)
 
-        # Determine our successes, and failures.
-        results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
+                X, y = [], []
 
-        # Compute accuracy.
-        accuracy = float(results.count(True)) / float(len(results))
-        accuracies.append(accuracy)
+                # Load data set
+                with open("hw4-data.csv") as f:
+                    next(f, None)
 
-        # generateSubmissionFile(myname, randomForest)
+                    for line in csv.reader(f, delimiter = ","):
+                        X.append(line[:-1])
+                        y.append(line[-1])
 
-        print "Accuracy: %.4f" % accuracy
+                X = np.array(X, dtype = float)
+                y = np.array(y, dtype = int)
 
-        lbound += bound_size
-        rbound += bound_size
+                K = 10
+                X_train = np.array([x for i, x in enumerate(X) if i % K != 9], dtype = float)
+                y_train = np.array([z for i, z in enumerate(y) if i % K != 9], dtype = int)
+                X_test  = np.array([x for i, x in enumerate(X) if i % K == 9], dtype = float)
+                y_test  = np.array([z for i, z in enumerate(y) if i % K == 9], dtype = int)
 
-    print("Final accuracy: %.4f" % np.average(accuracies))
+                # Predict results of the test set.
+                y_predicted = randomForest.predict(X_test)
+
+                # Determine our successes, and failures.
+                results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
+
+                # Compute accuracy.
+                accuracy = float(results.count(True)) / float(len(results))
+                #accuracies.append(accuracy)
+
+                #generateSubmissionFile(myname, randomForest)
+                filename = "%.4f__m-%s-max-depth-%d-num_trees-%d" % (accuracy, m, md, B)
+
+                call(["cp", "cse6242_hw4_submission_May-Matthew.csv", filename])
+
+                print "Accuracy: %.4f" % accuracy
+
+                print("B is %d" % B)
+
+    # K = 10
+    #
+    # lbound = 0
+    # bound_size = X.shape[0] / K
+    # rbound = lbound + bound_size
+    #
+    # accuracies = []
+    #
+    # for i in xrange(K):
+    #     # Prepare a training set.
+    #     X_train = np.concatenate((X[:lbound,:], X[rbound:,:]))
+    #     y_train = np.concatenate((y[:lbound], y[rbound:]))
+    #
+    #     # Prepare a test set.
+    #     X_test = X[lbound:rbound,:]
+    #     y_test = y[lbound:rbound]
+    #
+    #     print(lbound, rbound)
+    #
+    #     # Initialize according to your implementation
+    #     randomForest = RandomForest(10)
+    #
+    #     # Fit the classifier.
+    #     randomForest.fit(X_train, y_train)
+    #
+    #     # Predict results of the test set.
+    #     y_predicted = randomForest.predict(X_test)
+    #
+    #     # Determine our successes, and failures.
+    #     results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
+    #
+    #     # Compute accuracy.
+    #     accuracy = float(results.count(True)) / float(len(results))
+    #     accuracies.append(accuracy)
+    #
+    #     # generateSubmissionFile(myname, randomForest)
+    #
+    #     print "Accuracy: %.4f" % accuracy
+    #
+    #     lbound += bound_size
+    #     rbound += bound_size
+    #
+    # print("Final accuracy: %.4f" % np.average(accuracies))
 
 main()
