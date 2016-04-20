@@ -231,8 +231,6 @@ class RandomForest(object):
             votes = np.array([decision_tree.classify(instance)
                               for decision_tree in self.decision_trees])
 
-            print("votes are ", votes)
-
             counts = np.bincount(votes)
 
             y = np.append(y, np.argmax(counts))
@@ -327,8 +325,8 @@ def main():
         lbound += bound_size
         rbound += bound_size
 
-    # generateSubmissionFile(myname, randomForest)
+    generateSubmissionFile(myname, randomForest)
 
-    print("Final accuracy: %.4f" % np.average(accuracies))
+    print("Final accuracy from %d-fold cross-validation: %.4f" % (K, np.average(accuracies)))
 
 main()
