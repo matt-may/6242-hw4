@@ -1,5 +1,6 @@
 import csv
 import numpy as np  # http://www.numpy.org
+import math
 
 from CSE6242HW4Tester import generateSubmissionFile
 
@@ -19,9 +20,23 @@ class RandomForest(object):
     class __DecisionTree(object):
         tree = {}
 
+        def __init__(self, m):
+            self.m = m
+
         def learn(self, X, y):
-            # TODO: train decision tree and store it in self.tree
-            pass
+            self.X = X
+            self.y = y
+
+            num_samples = X.shape[0]
+            num_features = X.shape[1]
+            num_sub_features = int(self.m(num_features))
+
+            print("num sub features: %d" % num_sub_features)
+
+            indices = np.random.choice(num_features, size=num_sub_features,
+                                       replace=False)
+
+            
 
         def classify(self, test_instance):
             # TODO: return predicted label for a single instance using self.tree
@@ -29,15 +44,15 @@ class RandomForest(object):
 
     decision_trees = []
 
-    def __init__(self, num_trees):
+    def __init__(self, num_trees, m = math.sqrt):
         # TODO: do initialization here, you can change the function signature according to your need
         self.num_trees = num_trees
-        self.decision_trees = [self.__DecisionTree()] * num_trees
+        self.decision_trees = [self.__DecisionTree(m)] * num_trees
 
     # You MUST NOT change this signature
     def fit(self, X, y):
-        # TODO: train `num_trees` decision trees
-        pass
+        for tree in self.decision_trees:
+            tree.learn(X, y)
 
     # You MUST NOT change this signature
     def predict(self, X):
@@ -108,6 +123,7 @@ def main():
         y_test = y[lbound:rbound]
 
         print(lbound, rbound)
+        print(len(X_train), len(y_train), len(X_test), len(y_test))
 
         # Initialize according to your implementation
         randomForest = RandomForest(10)
@@ -121,13 +137,13 @@ def main():
         # Determine our successes, and failures.
         results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
 
-        # Accuracy
+        # Compute accuracy.
         accuracy = float(results.count(True)) / float(len(results))
         accuracies.append(accuracy)
 
         # generateSubmissionFile(myname, randomForest)
 
-        print "accuracy: %.4f" % accuracy
+        print "Accuracy: %.4f" % accuracy
 
         lbound += bound_size
         rbound += bound_size
