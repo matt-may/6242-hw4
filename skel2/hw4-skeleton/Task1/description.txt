@@ -1,15 +1,22 @@
+## a.
+
 For my initial forest, I implemented entropy with information gain as my
-splitting function. I implemented recursive tree-building, with it
-early-stopping when the entropy of the labels was zero, a maximum depth was
-reached, or the number of samples was less than two. A sub-optimal version of
-bagging was also implemented. I chose this approach because it was the most
-simple implementation to start with, and it was straightforward to implement
-from available documentation.
+splitting function. The classifier chose sqrt(num_features) to randomly split
+on, and early-stopped when the entropy of the labels was zero, a maximum depth
+of 10 was reached, or the number of samples was less than two. I used B=100
+trees. I chose this approach because it was the most simple implementation to
+start with, and was relatively straightforward to implement.
 
-With 10-fold cross-validation, my model achieved 82.73% accuracy.
+## b.
 
-To improve my model (accuracy was not exceeding 78.6%), I implemented the Gini
-index and Gini gain as my splitting function, as this seemed to be better-
-suited to classification. I also implemented bagging. With these changes, the
-model achieved 86.86% accuracy on the public leaderboard, an increase of
-approximately 10% in accuracy.
+With 10-fold cross-validation and after several enhancements, my final model
+achieved 82.73% accuracy. This was with a forest of 7 trees, sqrt(num_features)
+to randomly split on, and a max tree depth of 10.
+
+## c.
+
+To improve my model (accuracy was initially in the mid-70s), I implemented
+Gini gain as my splitting function, as this seemed better-suited to
+classification. I also added bagging. With these changes, the model achieved
+a maximum of 86.86% accuracy on Kaggle, an increase of >10% from the first
+model.
