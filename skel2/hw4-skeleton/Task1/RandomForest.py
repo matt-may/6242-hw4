@@ -272,66 +272,125 @@ class Node(object):
 def main():
     X, y = [], []
 
-    # Load data set
-    with open("hw4-data.csv") as f:
+    with open("winequality-red.csv") as f:
         next(f, None)
 
-        for line in csv.reader(f, delimiter = ","):
+        for line in csv.reader(f, delimiter = ";"):
             X.append(line[:-1])
-            y.append(line[-1])
+
+            klass = int(line[-1])
+
+            if klass < 7:
+                y.append(0)
+            else:
+                y.append(1)
+
+    with open("winequality-white.csv") as f:
+        next(f, None)
+
+        for line in csv.reader(f, delimiter = ";"):
+            X.append(line[:-1])
+
+            klass = int(line[-1])
+
+            if klass < 7:
+                y.append(0)
+            else:
+                y.append(1)
 
     X = np.array(X, dtype = float)
     y = np.array(y, dtype = int)
 
-    # Shuffle the data.
-    X, y = RandomForest.shuffle(X, y)
+    from subprocess import call
 
-    # Number of folds for cross-validation.
-    K = 10
+    for i in xrange(100):
+        for m in [lambda x: 5, lambda x: 10]:
+            print("i: %d, m: %s" % (i, m(1)))
+            # Shuffle the data.
+            X, y = RandomForest.shuffle(X, y)
 
-    # Initialize a left bound, and right bound, that will advance for cross-
-    # validation.
-    lbound = 0
-    bound_size = X.shape[0] / K
-    rbound = lbound + bound_size
+            # Initialize according to your implementation
+            randomForest = RandomForest(9, m=m)
 
-    # Create a container for the accuracies across cross-validation.
-    accuracies = []
+            # Fit the classifier.
+            randomForest.fit(X, y)
 
-    # Perform K-fold cross validation.
-    for i in xrange(K):
-        # Prepare a training set.
-        X_train = np.concatenate((X[:lbound,:], X[rbound:,:]))
-        y_train = np.concatenate((y[:lbound], y[rbound:]))
+            X_test,y_test=[],[]
 
-        # Prepare a test set.
-        X_test = X[lbound:rbound,:]
-        y_test = y[lbound:rbound]
+            # Load data set
+            with open("hw4-data.csv") as f:
+                next(f, None)
 
-        # Initialize according to your implementation
-        randomForest = RandomForest(7)
+                for line in csv.reader(f, delimiter = ","):
+                    X_test.append(line[:-1])
+                    y_test.append(line[-1])
 
-        # Fit the classifier.
-        randomForest.fit(X_train, y_train)
+            X_test = np.array(X, dtype = float)
+            y_test = np.array(y, dtype = int)
 
-        # Predict results of the test set.
-        y_predicted = randomForest.predict(X_test)
+            # Predict results of the test set.
+            y_predicted = randomForest.predict(X_test)
 
-        # Determine our successes, and failures.
-        results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
+            # Determine our successes, and failures.
+            results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
 
-        # Compute accuracy.
-        accuracy = float(results.count(True)) / float(len(results))
-        accuracies.append(accuracy)
+            # Compute accuracy.
+            accuracy = float(results.count(True)) / float(len(results))
+            #accuracies.append(accuracy)
 
-        print "Accuracy: %.4f" % accuracy
+            print "Accuracy: %.4f" % accuracy
 
-        # Increment the boundaries.
-        lbound += bound_size
-        rbound += bound_size
+            generateSubmissionFile(myname, randomForest)
 
-    generateSubmissionFile(myname, randomForest)
+            fname = "%.4f-%d" % (accuracy, i)
+            call(["cp", "cse6242_hw4_submission_May-Matthew.csv", fname])
 
-    print("Final accuracy from %d-fold cross-validation: %.4f" % (K, np.average(accuracies)))
+    # # Number of folds for cross-validation.
+    # K = 10
+    #
+    # # Initialize a left bound, and right bound, that will advance for cross-
+    # # validation.
+    # lbound = 0
+    # bound_size = X.shape[0] / K
+    # rbound = lbound + bound_size
+    #
+    # # Create a container for the accuracies across cross-validation.
+    # accuracies = []
+    #
+    # # Perform K-fold cross validation.
+    # for i in xrange(K):
+    #     # Prepare a training set.
+    #     X_train = np.concatenate((X[:lbound,:], X[rbound:,:]))
+    #     y_train = np.concatenate((y[:lbound], y[rbound:]))
+    #
+    #     # Prepare a test set.
+    #     X_test = X[lbound:rbound,:]
+    #     y_test = y[lbound:rbound]
+    #
+    #     # Initialize according to your implementation
+    #     randomForest = RandomForest(5, bootstrap=0.9)
+    #
+    #     # Fit the classifier.
+    #     randomForest.fit(X_train, y_train)
+    #
+    #     # Predict results of the test set.
+    #     y_predicted = randomForest.predict(X_test)
+    #
+    #     # Determine our successes, and failures.
+    #     results = [prediction == truth for prediction, truth in zip(y_predicted, y_test)]
+    #
+    #     # Compute accuracy.
+    #     accuracy = float(results.count(True)) / float(len(results))
+    #     accuracies.append(accuracy)
+    #
+    #     print "Accuracy: %.4f" % accuracy
+    #
+    #     # Increment the boundaries.
+    #     lbound += bound_size
+    #     rbound += bound_size
+    #
+    # #generateSubmissionFile(myname, randomForest)
+    #
+    # print("Final accuracy from %d-fold cross-validation: %.4f" % (K, np.average(accuracies)))
 
 main()
